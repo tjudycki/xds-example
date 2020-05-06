@@ -1,6 +1,6 @@
 # IPF IHE XDS SpringBoot Example
 
-This is a first version of tutorial that shows how to use IPF to support IHE XDS and PIX, using SpringBoot.
+This is a simple tutorial that shows how to use IPF to support IHE XDS using SpringBoot.
 
 ## How to use it
 
@@ -10,34 +10,57 @@ This is a first version of tutorial that shows how to use IPF to support IHE XDS
 
 You need Java 1.8 with this version of IPF.
 
-Change port in src/main/resources/application.properties 
+Change port in `src/main/resources/application.properties` if you need.
 
 
 ## How to test it
 
 Download client for testing https://www.soapui.org/downloads/soapui.html
 
-### Testing ITI18:
+Run SoapUI, File -> Import project -> open examples/XDS-soapui-project.xml
 
-Run SoapUI, File -> New SOAP Project 
-- Project Name: XDS Example
-- Initial WSDL: http://localhost:9091/services/xds-iti18?wsdl
+In this project there are ready requests for XDS:
+- ITI-41 Provide and Register with in-line document
+- ITI-41 Provide and Register with attached document
+- ITI-18 Stored Query
+- ITI-43 Retrieve 
 
-Then:
-DocumentRegistry_Binding_Soap12
-+ DocumentRegistry_RegistryStoredQuery
-  + Request1
+The same requests are stored in `examples` directory as XML files.
 
-Copy content of request_query.xml (006_request_query_dziala) into left panel and submit (Alt-Enter)
+## Project description
 
-### Testing ITI41:
+This project shows first, minimal set of XDS transactions: store documents into repository, find documents, retrieve documents. For each transaction there is a processor class, mostly self explanatory, that handle document's attributes and content.
+  
 
-From main menu: Project - Add WSDL
-- WSDL Location: http://localhost:9091/services/xds-iti41?wsdl
+## Maven, SpringBoot, Logback for beginners
 
-Copy content of 007_request_provide_register into left panel and submit.
+This is short and simple user's manual for absolute beginners.
 
-## Problems:
-- Can't create an ITI18 answer that would pass iti18ResponseValidator(). Try uncommenting this validation in XdsRouteBuilder and modify Iti18Processor to prepare proper answer.
-- Look at Iti18Processor - is it proper way of returning dokuments? Shall we use MTOM instead of base64 encoding? How to change it?
-- Can't prepare proper request in SoapUI for Provide'n'register DocumentSet that would containt dokument.  
+### Maven & SpringBoot
+
+Script `startup` contains just one command:
+`mvn spring-boot:run`
+that would download all necessary JARs, compile project and run in on embedded Tomcat. Other useful mvn options are:
+clean - delete all compiled/built stuff
+compile - compile project
+install - create JAR/WAR (explained below)
+dependency:sources - download JARs with sources (if available) but you need to remove already downloaded JARs from local repository - usually .m2 directory
+You may pass several options in proper order, eg:
+`mvn dependency:sources clean install`
+
+Running `mvn install` will create a JAR in target directory. If you need WAR then open pom.xml and change 
+	<packaging>jar</packaging>
+into
+	<packaging>war</packaging>
+This time `mvn install` will create a WAR in target directory.
+
+SpringBoot application creates an executable JAR, to use it:
+`java -jar target/xds-example-0.0.1-SNAPSHOT.jar`
+
+### Logback
+
+Have a look at `src/main/resources/logback.xml` to modify logging level and output. Definition like:
+    <logger name="org.openehealth.ipf.examples.xds" level="debug" additivity="false">
+        <appender-ref ref="STDOUT"/>
+    </logger>
+means: for all classes in org.openehealth.ipf.examples.xds package set log level to debug and append log messages to stdout. You may change log level and put FILE instead of STDOUT to redirect log messages to file.
